@@ -41,27 +41,29 @@ class Tweet(models.Model):
   
   @classmethod
   def parse_coordinates(cls, coordinates):
-    """
-    Represents the geographic location of this Tweet as reported by the user or client application. The inner coordinates array is formatted as geoJSON (longitude first, then latitude)
-    """
+    """ Represents the geographic location of this Tweet as reported by the user or client application. The inner coordinates array is formatted as geoJSON (longitude first, then latitude) """
     import json
 
-    import logging
-    logger = logging.getLogger('twittercache')
-    hdlr = logging.FileHandler('twittercache/logs/parse_coordinates.log')
-    formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-    hdlr.setFormatter(formatter)
-    logger.addHandler(hdlr) 
-    logger.setLevel(logging.INFO)
-      
     try:
-      coordinates = json.loads(coordinates)
-      long = coordinates["coordinates"][0]
-      lat = coordinates["coordinates"][0]
-      type = coordinates["type"]
-      logger.info("Coordinates: " + long + ", " + lat + " of type " + type)
+      coord = json.loads(coordinates)
+      long = coord["coordinates"][0]
+      lat = coord["coordinates"][0]
+      type = coord["type"]
     except TypeError:
-      logger.info("Coordinates: Null")
+      import os, errno
+      
+      log_path = "./twittercache/logs/coordinates/" 
+      filename = datetime.now().strftime('%Y%m%d-%H:%M:%S.%f.json')
+      try:
+        os.makedirs(log_path)
+      except OSError as e:
+        if e.errno is errno.EEXIST and os.path.isdir(log_path):
+          pass
+        else:
+          raise
+      with open(log_path + filename, 'w') as f:
+        print(coordinates, file=f)
+      f.close
       long = lat = type = None
       
     return long, lat, type
@@ -118,6 +120,5 @@ class Tweet(models.Model):
       else:
         raise
     with open(log_path + filename, 'w') as f:
-      # f.write(payload)
       print(self.text, file=f)
     f.close
