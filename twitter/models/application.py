@@ -76,6 +76,5 @@ class Application(models.Model):
       else:
         raise
     with open(log_path + filename, 'w') as f:
-      # f.write(payload)
       print(payload, file=f)
     f.close
