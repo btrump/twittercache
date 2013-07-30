@@ -33,16 +33,19 @@ class Application(models.Model):
     sum = 0
     for term in self.searchterm_set.all():
       sum += term.weight
-    return sum
+    return int(sum)
       
   def get_search_term_count(self):
     return self.searchterm_set.all().count()
   
   def search_all_terms(self):
-    # get all terms
+    import math
+    
     response = []
     for term in self.searchterm_set.all():
-      response.append(self.search_term(term))
+      term_requests = int(math.floor(term.weight / self.get_search_weights_sum())) * self.rate_limit_requests
+      for i in range(term_requests):
+        response.append(self.search_term(term))
     return response
 
   def search_term(self, term):
@@ -50,29 +53,33 @@ class Application(models.Model):
     from twitter.models import Tweet
     import json
 
-    base_url = "https://api.twitter.com/1.1/"
-    search_service_path = "search/tweets.json"
-    service = OAuth1Service(name='twitter',
-                            consumer_key=self.consumer_key,
-                            consumer_secret=self.consumer_secret,
-                            request_token_url=self.request_token_url,
-                            access_token_url=self.access_token_url,
-                            authorize_url=self.authorize_url,
-                            base_url=base_url)
-    session = service.get_session((self.access_token, self.access_token_secret))
-    response = session.get(search_service_path, params={'q':term, 'count':self.results_per_request}).json()
-    statuses = response['statuses']
-    self.store_payload(statuses)
-
-    for result in statuses:
-      tweet = Tweet.create(result, term)
-      tweet.user.save()
-      try:
-        tweet.save()
-      except:
-        tweet.log()
-
-    return statuses
+    try:
+      base_url = "https://api.twitter.com/1.1/"
+      search_service_path = "search/tweets.json"
+      service = OAuth1Service(name='twitter',
+                              consumer_key=self.consumer_key,
+                              consumer_secret=self.consumer_secret,
+                              request_token_url=self.request_token_url,
+                              access_token_url=self.access_token_url,
+                              authorize_url=self.authorize_url,
+                              base_url=base_url)
+      session = service.get_session((self.access_token, self.access_token_secret))
+      response = session.get(search_service_path, params={'q':term, 'count':self.results_per_request}).json()
+      statuses = response['statuses']
+      self.store_payload(statuses)
+  
+      for result in statuses:
+        tweet = Tweet.create(result, term)
+        tweet.user.save()
+        try:
+          tweet.save()
+        except:
+          tweet.log()
+  
+      return statuses
+    except KeyError:
+      self.store_payload(response)
+      return None
 
   @classmethod
   def store_payload(cls, payload):
