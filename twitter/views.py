@@ -12,9 +12,6 @@ def perform_search(request, *args, **kwargs):
   # for dev just using first application  
   application_id = request.REQUEST['application_id']
   application = Application.objects.get(pk=application_id)
-  
-#  random_index = random.randint(0, SearchTerm.objects.count() - 1)
-#  search_term = SearchTerm.objects.all()[random_index]
 
   response = application.search_all_terms()
   return HttpResponse(json.dumps(response), mimetype='application/json')

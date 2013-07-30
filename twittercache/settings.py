@@ -115,6 +115,10 @@ TEMPLATE_DIRS = (
     os.path.join(PROJECT_PATH, 'templates'),
 )
 
+CRON_CLASSES = [
+    'twitter.cron.ApplicationSearch',
+]
+
 INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -129,6 +133,7 @@ INSTALLED_APPS = (
     'south',
     'twitter',
     'rauth',
+    'django_cron',
 )
 
 # A sample logging configuration. The only tangible logging

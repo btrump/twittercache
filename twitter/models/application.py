@@ -4,6 +4,9 @@ from django.db import models
 class Application(models.Model):
   name = models.CharField(max_length=100)
   url = models.URLField()
+  rate_limit_window = models.IntegerField(blank=False)
+  rate_limit_requests = models.IntegerField(blank=False)
+  results_per_request = models.IntegerField(default=100, blank=False)
   consumer_key = models.CharField(max_length=100)
   consumer_secret = models.CharField(max_length=100)
   request_token_url = models.URLField()
@@ -26,7 +29,17 @@ class Application(models.Model):
       
     return ', '.join(terms)
   
+  def get_search_weights_sum(self):
+    sum = 0
+    for term in self.searchterm_set.all():
+      sum += term.weight
+    return sum
+      
+  def get_search_term_count(self):
+    return self.searchterm_set.all().count()
+  
   def search_all_terms(self):
+    # get all terms
     response = []
     for term in self.searchterm_set.all():
       response.append(self.search_term(term))
@@ -47,7 +60,7 @@ class Application(models.Model):
                             authorize_url=self.authorize_url,
                             base_url=base_url)
     session = service.get_session((self.access_token, self.access_token_secret))
-    response = session.get(search_service_path, params={'q':term}).json()
+    response = session.get(search_service_path, params={'q':term, 'count':self.results_per_request}).json()
     statuses = response['statuses']
     self.store_payload(statuses)
 
@@ -66,7 +79,7 @@ class Application(models.Model):
     from datetime import datetime
     import os, errno
     
-    log_path = "./twittercache/payloads/" 
+    log_path = "./twittercache/logs/payloads/" 
     filename = datetime.now().strftime('%Y%m%d-%H:%M:%S.%f.json')
     try:
       os.makedirs(log_path)
