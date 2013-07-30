@@ -1,0 +1,15 @@
+.admin-sidebar {
+  margin-top: 10px;
+  .module {
+    table {
+      width: 100%;
+    }
+    input.ajax {
+      margin: 10px 35%;
+      width: 30%;
+      padding: 10px;
+      font-size: 15px;
+      font-weight: 400;
+    }
+  }
+}

@@ -1,0 +1,92 @@
+{% extends "admin/change_form.html" %}
+{% block extrahead %}
+{{ block.super }}
+<script type="text/javascript" src="{{ STATIC_URL }}js/vendor/jquery-2.0.3.min.js"></script>
+<script>
+$(document).ready(function(){
+  var search_button = $("#application_search");
+  
+  search_button.click(function(){
+    perform_search();
+  });
+  
+  function perform_search() {
+    var url = "/twitter/perform_search/"
+    var data = {
+      csrfmiddlewaretoken: "{{ csrf_token }}",
+      application_id: {{ original.id }}
+    }
+    var type = "POST";
+
+    $.ajax({
+      url: url,
+      type: type,
+      data: data
+    }).done(function(response) {
+      console.log(response);
+    });
+  }
+});
+</script>
+{% endblock %}
+{% block content_column_class %}span5{% endblock %}
+{% block sidebar %}
+<div class="span6 admin-sidebar">
+  <fieldset class="module">
+    <h2>Perform Search</h2>
+    <input type="submit" name="search" class="ajax" value="Perform Search" id="application_search">
+  </fieldset>
+  <fieldset class="module">
+    <h2>Search Terms</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>id</td>
+          <th>Term</th>
+          <th>Weight</th>
+          <th>Active?</th>
+          <th>Added At</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for term in original.searchterm_set.all %}
+        <tr class="form-row row{% if forloop.counter|divisibleby:2 %}2{% else %}1{% endif %}">
+          <td> {{ term.id }} </td>
+          <td><a href="/admin/twitter/searchterm/{{ term.id }}" target="_blank">{{ term.term }}</a></td>
+          <td> {{ term.weight }} </td>
+          <td> {{ term.active }}</td>
+          <td> {{ term.added_at }} </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </fieldset>
+  {% if original.id %}
+  <fieldset class="module results">
+    <h2>Tweets (<a href="#">download as CSV</a>)</h2>
+    <table>
+      <thead>
+        <th>id</th>
+        <th>User</th>
+        <th>Text</th>
+        <th>Search Term</th>
+        <th>Added At</th>
+      </thead>
+      <tbody>
+        {% for term in original.searchterm_set.all %}
+          {% for tweet in term.tweet_set.all %}
+        <tr class="form-row {% if forloop.counter|divisibleby:2 %}row1{% endif %}">
+          <td> {{ tweet.id }}</td>
+          <td> {{ tweet.user }}</td>
+          <td> {{ tweet.text }}</td>
+          <td> {{ tweet.search_term.term }}</td>
+          <td> {{ tweet.added_at }}</td>
+        </tr>
+          {% endfor %}
+        {% endfor %}
+      </tbody>
+    </table>
+  </fieldset>
+</div>
+{% endif %}
+{% endblock %}
