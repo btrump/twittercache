@@ -94,6 +94,7 @@ class Application(models.Model):
       session = service.get_session((self.access_token, self.access_token_secret))
       response = session.get(search_service_path, params={'q':term, 'count':self.results_per_request}).json()
       statuses = response['statuses']
+      self.store_payload(response)
   
       for result in statuses:
         tweet = Tweet.create(result, term)
@@ -106,9 +107,6 @@ class Application(models.Model):
       return statuses
     except Exception as e:
       self.logger.error(e)
-    finally:
-      self.store_payload(response)
-      return response
 
   @classmethod
   def store_payload(cls, payload):
