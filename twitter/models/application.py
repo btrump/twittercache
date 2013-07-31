@@ -1,7 +1,7 @@
 from __future__ import print_function
 from django.db import models
 from datetime import datetime
-import pytz
+import pytz, logging
 
 class Application(models.Model):
   name = models.CharField(max_length=100)
@@ -19,12 +19,29 @@ class Application(models.Model):
   access_token_secret = models.CharField(max_length=100, blank=True)
   added_at = models.DateTimeField(null=False, blank=False, default=datetime.now(pytz.utc), editable=False)
   
+  logger = logging.getLogger(__name__)
+  
   class Meta:
     app_label = "twitter"
   
   def __unicode__(self):
     return self.name
   
+  def __init__(self, *args, **kwargs):
+    super(Application, self).__init__(*args, **kwargs)
+    self.configure_logging(args, kwargs)
+    
+  def configure_logging(self, *args, **kwargs):
+    from django.conf import settings
+    import os
+
+    log_filename = os.path.join(settings.PROJECT_PATH, 'logs', 'application.log')
+    handler = logging.FileHandler(log_filename)
+    formatter = logging.Formatter('[%(asctime)s] %(levelname)s - %(funcName)s() - %(message)s')
+    handler.setFormatter(formatter)
+    handler.setLevel(logging.DEBUG)
+    self.logger.addHandler(handler)
+    
   def tweets_count(self):
     return self.tweet_set.all().__len__()
   
