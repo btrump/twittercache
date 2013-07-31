@@ -5,12 +5,20 @@
 <script>
 $(document).ready(function(){
   var search_button = $("#application_search");
+  var download_tweets_button = $('#download_tweets'); 
   
   search_button.click(function(){
     perform_search();
   });
   
+  download_tweets_button(function(){
+    download_tweets();
+  });
+  
   function perform_search() {
+    /*
+     * AJAX hits the perform_search view for the application
+     */
     var url = "/twitter/perform_search/"
     var data = {
       csrfmiddlewaretoken: "{{ csrf_token }}",
@@ -23,8 +31,18 @@ $(document).ready(function(){
       type: type,
       data: data
     }).done(function(response) {
+      /*
+       * Currently logging the response to console.  Eventually will update the page.
+       */
       console.log(response);
     });
+  }
+  
+  function download_tweets() {
+    /*
+     * Don't follow the link
+     */
+    return false;
   }
 });
 </script>
@@ -63,7 +81,7 @@ $(document).ready(function(){
   </fieldset>
   {% if original.id %}
   <fieldset class="module results">
-    <h2>Recent Tweets (<a href="#">download as CSV</a>)</h2>
+    <h2>Recent Tweets (<a href="{% url 'download_tweets' original.id %}" id="download_tweets">download all {{ original.tweets_count }} as CSV</a>)</h2>
     <table>
       <thead>
         <th>id</th>
