@@ -35,7 +35,7 @@ class Tweet(models.Model):
   search_term = models.ForeignKey(SearchTerm, null=False, blank=False)
   application = models.ForeignKey(Application, null=False, blank=False)
   
-  # Raw JSON response
+  # Container for JSON response
   json = ""
   
   class Meta:
@@ -73,16 +73,6 @@ class Tweet(models.Model):
       
     return long, lat, type
   
-  @classmethod
-  def safe_unicode(cls, obj, *args):
-    """ Return the unicode representation of obj """
-    try:
-      return unicode(obj, *args)
-    except UnicodeDecodeError:
-      # obj is a bytestring
-      ascii = str(obj).encode("string_escape")
-      return unicode(ascii)
-      
   @classmethod    
   def create(cls, result, term):
     from dateutil import parser
@@ -100,8 +90,7 @@ class Tweet(models.Model):
     tweet.truncated = result["truncated"]
     tweet.retweeted = result["retweeted"]
     # suspect text may come as bytestring
-    unicode_text = Tweet.safe_unicode(result["text"])
-    tweet.text = unicode_text.encode("utf-8")
+    tweet.text = result["text"].encode('ascii', 'ignore')
     tweet.retweet_count = result["retweet_count"]
     tweet.in_reply_to_user_id = result["in_reply_to_user_id"]
     tweet.in_reply_to_user_id_str = result["in_reply_to_user_id_str"]
