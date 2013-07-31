@@ -22,6 +22,12 @@ class Application(models.Model):
   def __unicode__(self):
     return self.name
   
+  def tweets_count(self):
+    return self.tweet_set.all().__len__()
+  
+  def recent_tweets(self, count=5):
+    return self.tweet_set.order_by('-created_at')[:count]
+  
   def search_terms(self):
     terms = []
     for term in self.searchterm_set.all():
@@ -78,6 +84,8 @@ class Application(models.Model):
   
       return statuses
     except KeyError:
+      # usually result of exceeding the rate limit
+      # do something better here
       self.store_payload(response)
       return None
 

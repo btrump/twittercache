@@ -5,7 +5,7 @@ from models.tweet import Tweet
 from models.searchterm import SearchTerm
 
 class ApplicationAdmin(admin.ModelAdmin):
-  list_display = ('name', 'search_terms')
+  list_display = ('name', 'search_terms', 'tweets_count')
 admin.site.register(Application, ApplicationAdmin)
 
 class UserAdmin(admin.ModelAdmin):

@@ -2,8 +2,9 @@ from __future__ import print_function
 from django.db import models
 from datetime import datetime
 import pytz
-from user import User
-from searchterm import SearchTerm
+# from user import User
+# from searchterm import SearchTerm
+from twitter.models import *
 
 class Tweet(models.Model):
   CHAR_FIELD_MAX_LENGTH = 200
@@ -32,6 +33,7 @@ class Tweet(models.Model):
   # Custom fields
   added_at = models.DateTimeField(null=False, blank=False, default=datetime.now(pytz.utc))
   search_term = models.ForeignKey(SearchTerm, null=False, blank=False)
+  application = models.ForeignKey(Application, null=False, blank=False)
   
   class Meta:
     app_label = "twitter"
@@ -85,6 +87,7 @@ class Tweet(models.Model):
     tweet = Tweet()
     tweet.search_term = term
     tweet.user = User.create(result.pop("user", None))
+    tweet.application = term.application
     tweet.id = result["id"]
     tweet.id_str = result["id_str"]
     tweet.coordinate_longitude, tweet.coordinate_latitude, tweet.coordinate_type = Tweet.parse_coordinates(result["coordinates"])

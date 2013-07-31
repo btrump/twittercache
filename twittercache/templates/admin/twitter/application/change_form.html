@@ -63,7 +63,7 @@ $(document).ready(function(){
   </fieldset>
   {% if original.id %}
   <fieldset class="module results">
-    <h2>Tweets (<a href="#">download as CSV</a>)</h2>
+    <h2>Recent Tweets (<a href="#">download as CSV</a>)</h2>
     <table>
       <thead>
         <th>id</th>
@@ -73,8 +73,7 @@ $(document).ready(function(){
         <th>Added At</th>
       </thead>
       <tbody>
-        {% for term in original.searchterm_set.all %}
-          {% for tweet in term.tweet_set.all %}
+        {% for tweet in original.recent_tweets %}
         <tr class="form-row {% if forloop.counter|divisibleby:2 %}row1{% endif %}">
           <td> {{ tweet.id }}</td>
           <td> {{ tweet.user }}</td>
@@ -82,7 +81,6 @@ $(document).ready(function(){
           <td> {{ tweet.search_term.term }}</td>
           <td> {{ tweet.added_at }}</td>
         </tr>
-          {% endfor %}
         {% endfor %}
       </tbody>
     </table>
