@@ -35,6 +35,9 @@ class Tweet(models.Model):
   search_term = models.ForeignKey(SearchTerm, null=False, blank=False)
   application = models.ForeignKey(Application, null=False, blank=False)
   
+  # Raw JSON response
+  json = ""
+  
   class Meta:
     app_label = "twitter"
 
@@ -85,6 +88,7 @@ class Tweet(models.Model):
     from dateutil import parser
     
     tweet = Tweet()
+    tweet.json = result
     tweet.search_term = term
     tweet.user = User.create(result.pop("user", None))
     tweet.application = term.application
@@ -113,8 +117,10 @@ class Tweet(models.Model):
     from datetime import datetime
     import os, errno, json
     
-    log_path = "./twittercache/logs/tweets/" 
-    filename = datetime.now().strftime('%Y%m%d-%H:%M:%S.%f.json')
+    now = datetime.now()
+    filename = now.strftime('%H%M%S.%f.json')
+    log_path = "./twittercache/logs/tweets/%s/" % now.strftime('%Y/%m/%d') 
+    filename = "%s.json" % self.id
     try:
       os.makedirs(log_path)
     except OSError as e:
@@ -123,5 +129,7 @@ class Tweet(models.Model):
       else:
         raise
     with open(log_path + filename, 'w') as f:
-      print(self.text, file=f)
+      print(self.json, file=f)
     f.close
+    
+    return log_path + filename

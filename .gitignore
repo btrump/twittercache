@@ -5,5 +5,3 @@
 .project
 # Python compiled
 *.pyc
-# Logs
-logs/

@@ -65,6 +65,8 @@ class Application(models.Model):
     return self.searchterm_set.all().count()
   
   def search_all_terms(self):
+    self.logger.debug('Searching all terms (%s): %s' % (self.searchterm_set.count(), self.search_terms()))
+
     response = []
     for term in self.searchterm_set.all():
       term_requests = int((term.weight / float(self.get_search_weights_sum())) * self.rate_limit_requests)
@@ -73,6 +75,8 @@ class Application(models.Model):
     return response
 
   def search_term(self, term):
+    self.logger.debug('Searching term: %s' % term)
+
     from rauth import OAuth1Service
     from twitter.models import Tweet
     import json
@@ -90,20 +94,19 @@ class Application(models.Model):
       session = service.get_session((self.access_token, self.access_token_secret))
       response = session.get(search_service_path, params={'q':term, 'count':self.results_per_request}).json()
       statuses = response['statuses']
-      self.store_payload(response)
   
       for result in statuses:
         tweet = Tweet.create(result, term)
         tweet.user.save()
         try:
           tweet.save()
-        except:
-          tweet.log()
-  
+        except Exception as e:
+          logged_tweet_path = tweet.log()
+          self.logger.error("Could not save tweet with id %s to database.  %s.  JSON response logged to %s" % (tweet.id, e, logged_tweet_path))
       return statuses
-    except KeyError:
-      # usually result of exceeding the rate limit
-      # do something better here
+    except Exception as e:
+      self.logger.error(e)
+    finally:
       self.store_payload(response)
       return response
 
@@ -112,8 +115,9 @@ class Application(models.Model):
     from datetime import datetime
     import os, errno
     
-    log_path = "./twittercache/logs/payloads/" 
-    filename = datetime.now().strftime('%Y%m%d-%H%M%S.%f.json')
+    now = datetime.now()
+    log_path = "./twittercache/logs/payloads/%s/" % now.strftime('%Y/%m/%d') 
+    filename = now.strftime('%H%M%S.%f.json')
     try:
       os.makedirs(log_path)
     except OSError as e:
