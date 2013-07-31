@@ -17,5 +17,5 @@ class TweetAdmin(admin.ModelAdmin):
 admin.site.register(Tweet, TweetAdmin)
 
 class SearchTermAdmin(admin.ModelAdmin):
-  list_display = ('term', 'application')
+  list_display = ('term', 'application', 'tweets_count')
 admin.site.register(SearchTerm, SearchTermAdmin)

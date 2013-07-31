@@ -15,3 +15,6 @@ class SearchTerm(models.Model):
 
   def __unicode__(self):
     return self.term
+  
+  def tweets_count(self):
+    return self.tweet_set.all().__len__()

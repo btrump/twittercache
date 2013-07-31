@@ -61,6 +61,7 @@ $(document).ready(function(){
         <tr>
           <th>id</td>
           <th>Term</th>
+          <th>Tweets</th>
           <th>Weight</th>
           <th>Active?</th>
           <th>Added At</th>
@@ -71,8 +72,9 @@ $(document).ready(function(){
         <tr class="form-row row{% if forloop.counter|divisibleby:2 %}2{% else %}1{% endif %}">
           <td> {{ term.id }} </td>
           <td><a href="/admin/twitter/searchterm/{{ term.id }}" target="_blank">{{ term.term }}</a></td>
+          <td> {{ term.tweets_count }} </td>
           <td> {{ term.weight }} </td>
-          <td> {{ term.active }}</td>
+          <td> {{ term.active }} </td>
           <td> {{ term.added_at }} </td>
         </tr>
         {% endfor %}
@@ -88,7 +90,7 @@ $(document).ready(function(){
         <th>User</th>
         <th>Text</th>
         <th>Search Term</th>
-        <th>Added At</th>
+        <th>Created At</th>
       </thead>
       <tbody>
         {% for tweet in original.recent_tweets %}
@@ -97,7 +99,7 @@ $(document).ready(function(){
           <td> {{ tweet.user }}</td>
           <td> {{ tweet.text }}</td>
           <td> {{ tweet.search_term.term }}</td>
-          <td> {{ tweet.added_at }}</td>
+          <td> {{ tweet.created_at }}</td>
         </tr>
         {% endfor %}
       </tbody>
