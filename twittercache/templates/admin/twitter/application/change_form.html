@@ -62,6 +62,7 @@ $(document).ready(function(){
           <th>id</td>
           <th>Term</th>
           <th>Tweets</th>
+          <th>Times Searched</th>
           <th>Weight</th>
           <th>Active?</th>
           <th>Added At</th>
@@ -73,6 +74,7 @@ $(document).ready(function(){
           <td> {{ term.id }} </td>
           <td><a href="/admin/twitter/searchterm/{{ term.id }}" target="_blank">{{ term.term }}</a></td>
           <td> {{ term.tweets_count }} </td>
+          <td> {{ term.search_counter }} </td>
           <td> {{ term.weight }} </td>
           <td> {{ term.active }} </td>
           <td> {{ term.added_at }} </td>

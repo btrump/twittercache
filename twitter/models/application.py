@@ -73,7 +73,7 @@ class Application(models.Model):
       for i in range(term_requests):
         response.append(self.search_term(term))
     return response
-
+  
   def search_term(self, term):
     self.logger.debug('Searching term: %s' % term)
 
@@ -94,6 +94,7 @@ class Application(models.Model):
       session = service.get_session((self.access_token, self.access_token_secret))
       response = session.get(search_service_path, params={'q':term, 'count':self.results_per_request}).json()
       statuses = response['statuses']
+      term.increment_search_counter()
       self.store_payload(response)
   
       for result in statuses:
