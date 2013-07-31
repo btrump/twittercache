@@ -11,7 +11,6 @@ Objects:
 
 Next steps:
 
-1. cron job to automate searches
 1. Add API for accessing results
 
 Known problems:
