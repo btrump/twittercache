@@ -12,6 +12,7 @@ Objects:
 Next steps:
 
 1. Add API for accessing results
+2. Improve search results by iterating through result pages
 
 Known problems:
 

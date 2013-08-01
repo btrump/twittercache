@@ -74,16 +74,13 @@ class Application(models.Model):
         response.append(self.search_term(term))
     return response
   
-  def search_term(self, term):
-    self.logger.debug('Searching term: %s' % term)
-
+  def get_session(self):
     from rauth import OAuth1Service
-    from twitter.models import Tweet
-    import json
+
+    self.logger.debug('Establishing session with Twitter')
 
     try:
       base_url = "https://api.twitter.com/1.1/"
-      search_service_path = "search/tweets.json"
       service = OAuth1Service(name='twitter',
                               consumer_key=self.consumer_key,
                               consumer_secret=self.consumer_secret,
@@ -92,6 +89,20 @@ class Application(models.Model):
                               authorize_url=self.authorize_url,
                               base_url=base_url)
       session = service.get_session((self.access_token, self.access_token_secret))
+      return session
+    except Exception as e:
+      self.logger.error("Could not establish session. %s" % e)
+      return None
+  
+  def search_term(self, term):
+    from twitter.models import Tweet
+    import json
+
+    self.logger.debug('Searching term: %s' % term)
+
+    try:
+      search_service_path = "search/tweets.json"
+      session = self.get_session()
       response = session.get(search_service_path, params={'q':term, 'count':self.results_per_request}).json()
       statuses = response['statuses']
       term.increment_search_counter()
