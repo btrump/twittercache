@@ -13,7 +13,7 @@ class UserAdmin(admin.ModelAdmin):
 admin.site.register(User, UserAdmin)
 
 class TweetAdmin(admin.ModelAdmin):
-  pass
+  list_display = ('text', 'user', 'created_at')
 admin.site.register(Tweet, TweetAdmin)
 
 class SearchTermAdmin(admin.ModelAdmin):
