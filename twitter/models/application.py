@@ -70,41 +70,23 @@ class Application(models.Model):
     response = []
     for term in self.searchterm_set.all():
       term_requests = int((term.weight / float(self.get_search_weights_sum())) * self.rate_limit_requests)
+      self.logger.debug('Giving %s a total of %s requests ((%s weight / %s weight sum) * %s rate limit)' % (term, term_requests, term.weight, self.get_search_weights_sum(), self.rate_limit_requests))
       for i in range(term_requests):
         response.append(self.search_term(term))
     return response
-  
-  def get_session(self):
-    from rauth import OAuth1Service
-
-    self.logger.debug('Establishing session with Twitter')
-
-    try:
-      base_url = "https://api.twitter.com/1.1/"
-      service = OAuth1Service(name='twitter',
-                              consumer_key=self.consumer_key,
-                              consumer_secret=self.consumer_secret,
-                              request_token_url=self.request_token_url,
-                              access_token_url=self.access_token_url,
-                              authorize_url=self.authorize_url,
-                              base_url=base_url)
-      session = service.get_session((self.access_token, self.access_token_secret))
-      return session
-    except Exception as e:
-      self.logger.error("Could not establish session. %s" % e)
-      return None
   
   def search_term(self, term):
     from twitter.models import Tweet
     import json
 
-    self.logger.debug('Searching term: %s' % term)
-
     try:
+      search_params={'q':term, 'count':self.results_per_request}
+      self.logger.debug('Searching with parameters %s' % search_params)
       search_service_path = "search/tweets.json"
       session = self.get_session()
-      response = session.get(search_service_path, params={'q':term, 'count':self.results_per_request}).json()
+      response = session.get(search_service_path, params=search_params).json()
       statuses = response['statuses']
+      self.logger.debug('Got %s results' % statuses.__len__())
       term.increment_search_counter()
       self.store_payload(response)
   
@@ -120,6 +102,27 @@ class Application(models.Model):
     except Exception as e:
       self.logger.error(e)
 
+  def get_session(self):
+    from rauth import OAuth1Service
+
+    self.logger.debug('Establishing session with Twitter')
+
+    try:
+      base_url = "https://api.twitter.com/1.1/"
+      service = OAuth1Service(name='twitter',
+                              consumer_key=self.consumer_key,
+                              consumer_secret=self.consumer_secret,
+                              request_token_url=self.request_token_url,
+                              access_token_url=self.access_token_url,
+                              authorize_url=self.authorize_url,
+                              base_url=base_url)
+      session = service.get_session((self.access_token, self.access_token_secret))
+      self.logger.debug('Success')
+      return session
+    except Exception as e:
+      self.logger.error("Could not establish session. %s" % e)
+      return None
+  
   @classmethod
   def store_payload(cls, payload):
     from datetime import datetime
