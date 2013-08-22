@@ -2,9 +2,15 @@ from __future__ import print_function
 from django.db import models
 from datetime import datetime
 import pytz
-# from user import User
-# from searchterm import SearchTerm
 from twitter.models import *
+
+class TweetManager(models.Manager):
+  """ Gets the object or returns none """
+  def get_or_none(self, **kwargs):
+    try:
+      return self.get(**kwargs)
+    except (self.model.DoesNotExist, self.model.MultipleObjectsReturned), e:
+      return None
 
 class Tweet(models.Model):
   CHAR_FIELD_MAX_LENGTH = 200
@@ -37,6 +43,9 @@ class Tweet(models.Model):
   
   # Container for JSON response
   json = ""
+  
+  # Managers
+  objects = TweetManager()
   
   class Meta:
     app_label = "twitter"
