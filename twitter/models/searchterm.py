@@ -23,3 +23,4 @@ class SearchTerm(models.Model):
   def increment_search_counter(self):
     self.search_counter += 1
     self.save()
+    return self.search_counter
