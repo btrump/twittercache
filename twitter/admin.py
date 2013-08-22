@@ -13,7 +13,8 @@ class UserAdmin(admin.ModelAdmin):
 admin.site.register(User, UserAdmin)
 
 class TweetAdmin(admin.ModelAdmin):
-  list_display = ('text', 'user', 'created_at')
+  list_display = ('text', 'user', 'search_term', 'created_at')
+  search_fields = ['id_str', 'text', 'user__name', 'search_term__term']  
 admin.site.register(Tweet, TweetAdmin)
 
 class SearchTermAdmin(admin.ModelAdmin):
