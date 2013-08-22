@@ -115,7 +115,7 @@ class Tweet(models.Model):
     tweet.favorited = result["favorited"]
     tweet.truncated = result["truncated"]
     tweet.retweeted = result["retweeted"]
-    tweet.text = result["text"]
+    tweet.text = result["text"].encode('ascii', 'ignore')
     tweet.retweet_count = result["retweet_count"]
     tweet.in_reply_to_user_id = result["in_reply_to_user_id"]
     tweet.in_reply_to_user_id_str = result["in_reply_to_user_id_str"]
