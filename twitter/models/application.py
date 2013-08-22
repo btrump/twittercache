@@ -74,6 +74,7 @@ class Application(models.Model):
             'total_results_saved_count': 0,
             'total_payload_size': 0,
             'terms_searched': 0,
+            'total_results_geotagged': 0,
             }
     term_results = {}
     for term in self.searchterm_set.all():
@@ -82,11 +83,13 @@ class Application(models.Model):
       self.logger.debug('Giving %s a total of %s requests ((%s weight / %s weight sum) * %s rate limit)' % (term, term_requests, term.weight, self.get_search_weights_sum(), self.rate_limit_requests))
       for i in range(term_requests):
         term_result = self.search_term(term)
-        info['total_result_count'] += term_result['info']['result_count']
-        info['total_results_duplicate_count'] += term_result['info']['results_duplicate_count']
-        info['total_results_error_count'] += term_result['info']['results_error_count']
-        info['total_results_saved_count'] += term_result['info']['results_saved_count']
-        info['total_payload_size'] += term_result['info']['payload_size']
+        if term_result:
+          info['total_result_count'] += term_result['info']['result_count']
+          info['total_results_duplicate_count'] += term_result['info']['results_duplicate_count']
+          info['total_results_error_count'] += term_result['info']['results_error_count']
+          info['total_results_saved_count'] += term_result['info']['results_saved_count']
+          info['total_payload_size'] += term_result['info']['payload_size']
+          info['total_results_geotagged'] += term_result['info']['results_geotagged']
         term_results.update({unicode(term):term_result})
     return {'terms':term_results, 'info':info}
   
@@ -108,6 +111,7 @@ class Application(models.Model):
               'results_saved_count': 0,
               'results_duplicate_count': 0,
               'results_error_count': 0,
+              'results_geotagged': 0,
               'payload_size': json.dumps(response).__len__(),
               'payload_path': self.store_payload(json.dumps(response)),
               }
@@ -119,18 +123,20 @@ class Application(models.Model):
         if tweet:
           info['results_duplicate_count'] += 1
         else:
+          tweet = Tweet.create(result, term)
           try:
-            tweet = Tweet.create(result, term)
             tweet.user.save()
             tweet.save()
             info['results_saved_count'] += 1
           except Exception as e:
             info['results_error_count'] += 1
             logged_tweet_path = tweet.log()
-            self.logger.error("Could not save tweet with id %s to database.  %s.  JSON response logged to %s" % (tweet.id, e, logged_tweet_path))
+            self.logger.exception("Could not save tweet with id %s to database.  %s.  JSON response logged to %s" % (tweet.id, e, logged_tweet_path))
+        if tweet.is_geotagged():
+          info['results_geotagged'] += 1
       return {'info':info, 'statuses':statuses}
     except Exception as e:
-      self.logger.error(e)
+      self.logger.exception(e)
       return None
 
   def get_session(self):
@@ -151,7 +157,7 @@ class Application(models.Model):
       self.logger.debug('Success')
       return session
     except Exception as e:
-      self.logger.error("Could not establish session. %s" % e)
+      self.logger.exception("Could not establish session. %s" % e)
       return None
   
   @classmethod

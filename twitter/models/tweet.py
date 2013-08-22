@@ -53,31 +53,48 @@ class Tweet(models.Model):
   def __unicode__(self):
     return self.text + "\"" + self.text + "\" --" + self.user.name
   
+  def is_geotagged(self):
+    return (self.coordinate_longitude is not None) and (self.coordinate_latitude is not None) and (self.coordinate_type is not None)
+  
+  @classmethod
+  def log_by_entity(cls, entity, data):
+    import os, errno
+    
+    now = datetime.now()
+    log_path = "./twittercache/logs/" + entity + "/%s/" % now.strftime('%Y/%m/%d') 
+    filename = now.strftime('%H%M%S.%f.json')
+    path_to_log = log_path + filename
+    try:
+      os.makedirs(log_path)
+    except OSError as e:
+      if e.errno is errno.EEXIST and os.path.isdir(log_path):
+        pass
+      else:
+        raise
+    with open(path_to_log, 'w') as f:
+      print(data, file=f)
+      f.close
+      return path_to_log
+  
   @classmethod
   def parse_coordinates(cls, coordinates):
     """ Represents the geographic location of this Tweet as reported by the user or client application. The inner coordinates array is formatted as geoJSON (longitude first, then latitude) """
-    import json
+    from types import NoneType
+    from datetime import datetime
 
-    try:
-      coord = json.loads(coordinates)
-      long = coord["coordinates"][0]
-      lat = coord["coordinates"][0]
-      type = coord["type"]
-    except TypeError:
-      import os, errno
-      
-      log_path = "./twittercache/logs/coordinates/" 
-      filename = datetime.now().strftime('%Y%m%d-%H:%M:%S.%f.json')
+    
+    if coordinates.__class__ is not NoneType:
       try:
-        os.makedirs(log_path)
-      except OSError as e:
-        if e.errno is errno.EEXIST and os.path.isdir(log_path):
-          pass
-        else:
-          raise
-      with open(log_path + filename, 'w') as f:
-        print(coordinates, file=f)
-      f.close
+        long = coordinates["coordinates"][0]
+        lat = coordinates["coordinates"][0]
+        type = coordinates["type"]
+        entity = 'coordinates/successes'
+      except Exception as e:
+        long = lat = type = None
+        entity = 'coordinates/exceptions'
+      finally:
+        Tweet.log_by_entity(entity, coordinates)
+    else:
       long = lat = type = None
       
     return long, lat, type
@@ -98,8 +115,7 @@ class Tweet(models.Model):
     tweet.favorited = result["favorited"]
     tweet.truncated = result["truncated"]
     tweet.retweeted = result["retweeted"]
-    # suspect text may come as bytestring
-    tweet.text = result["text"].encode('ascii', 'ignore')
+    tweet.text = result["text"]
     tweet.retweet_count = result["retweet_count"]
     tweet.in_reply_to_user_id = result["in_reply_to_user_id"]
     tweet.in_reply_to_user_id_str = result["in_reply_to_user_id_str"]
