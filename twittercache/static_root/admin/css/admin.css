@@ -1,0 +1,16 @@
+/* line 1, ../../../sass/admin/sass/admin.scss */
+.admin-sidebar {
+  margin-top: 10px;
+}
+/* line 4, ../../../sass/admin/sass/admin.scss */
+.admin-sidebar .module table {
+  width: 100%;
+}
+/* line 7, ../../../sass/admin/sass/admin.scss */
+.admin-sidebar .module input.ajax {
+  margin: 10px 35%;
+  width: 30%;
+  padding: 10px;
+  font-size: 15px;
+  font-weight: 400;
+}

@@ -31,10 +31,20 @@ $(document).ready(function(){
       type: type,
       data: data
     }).done(function(response) {
+      var info = response['info'];
+      var message = 'Terms searched: ' + info['terms_searched'] + '\n';
+      message += 'Total payload size: ' + info['total_payload_size'] + '\n';
+      message += 'Total results count: ' + info['total_result_count'] + '\n';
+      message += 'Total results duplicate count: ' + info['total_results_duplicate_count'] + '\n';
+      message += 'Total results error count: ' + info['total_results_error_count'] + '\n';
+      message += 'Total results geotagged: ' + info['total_results_geotagged'] + '\n';
+      message += 'Total results saved count: ' + info['total_results_saved_count'] + '\n';
+      
       /*
        * Currently logging the response to console.  Eventually will update the page.
        */
       console.log(response);
+      alert(message);
     });
   }
   
